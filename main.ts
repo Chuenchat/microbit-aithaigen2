@@ -1,6 +1,10 @@
 function read_water_level (water_level_pin: number) {
     return Environment.ReadWaterLevel(water_level_pin)
 }
+function enable_gesture (state: number) {
+    listenning_to.gesture = state === 1;
+return state === 1 ? "ready" : state === 0 ? "off" : state
+}
 input.onGesture(Gesture.EightG, function () {
     if (listenning_to.gesture) {
         serial.writeString("" + commands.gesture + "::EightG\n")
@@ -33,7 +37,7 @@ input.onGesture(Gesture.LogoUp, function () {
 })
 function move_servo (pin: number, angle: number) {
     pins.servoWritePin(pin, angle)
-    return 1
+return 1
 }
 input.onGesture(Gesture.TiltLeft, function () {
     if (listenning_to.gesture) {
@@ -59,12 +63,38 @@ function play_music (music_id: number) {
     music._playDefaultBackground(music.builtInPlayableMelody(music_id), music.PlaybackMode.InBackground)
     return 1
 }
+input.onGesture(Gesture.ScreenUp, function () {
+    if (listenning_to.gesture) {
+        serial.writeString("" + commands.gesture + "::ScreenUp\n")
+    }
+})
 function read_soil_humidity (soil_moisture_pin: number) {
     return Environment.ReadSoilHumidity(soil_moisture_pin)
 }
+input.onGesture(Gesture.ScreenDown, function () {
+    if (listenning_to.gesture) {
+        serial.writeString("" + commands.gesture + "::ScreenDown\n")
+    }
+})
 function read_noise (noise_pin: number) {
     return Environment.ReadNoise(noise_pin)
 }
+function enable_logo (state: number) {
+    listenning_to.logo = state === 1;
+    return state === 1 ? "ready" : state === 0 ? "off" : state
+}
+// function enable_accelerometer (state: number) {
+//     listenning_to.accelerometer = state === 1;
+//     return state === 1 ? "ready" : state === 0 ? "off" : state
+// }
+// function enable_temperature(state: number) {
+//     listenning_to.temperature = state === 1;
+//     return state === 1 ? "ready" : state === 0 ? "off" : state
+// }
+// function enable_compass (state: number) {
+//     listenning_to.compass = state === 1;
+//     return state === 1 ? "ready" : state === 0 ? "off" : state
+// }
 function read_dust (v_led: number, vo: number) {
     return Environment.ReadDust(v_led, vo)
 }
@@ -75,40 +105,19 @@ function read_pir (pin: number) {
         return 0
     }
 }
-function enable_logo(state: number) {
-    listenning_to.logo = state === 1;
-    return state === 1 ? "ready" : state === 0 ? "off" : state
+function read_accelerometer() {
+    return input.acceleration(Dimension.X) + "," + input.acceleration(Dimension.Y) + "," + input.acceleration(Dimension.Z);
+}
+function read_compass() {
+    return input.compassHeading();
+}
+function read_temperature() {
+    return input.temperature();
 }
 function enable_button_ab (state: number) {
     listenning_to.button_ab = state === 1;
     return state === 1 ? "ready" : state === 0 ? "off" : state
 }
-function enable_gesture(state: number) {
-    listenning_to.gesture = state === 1;
-    return state === 1 ? "ready" : state === 0 ? "off" : state
-}
-function enable_accelerometer(state: number) {
-    listenning_to.accelerometer = state === 1;
-    return state === 1 ? "ready" : state === 0 ? "off" : state
-}
-function enable_compass(state: number) {
-    listenning_to.compass = state === 1;
-    return state === 1 ? "ready" : state === 0 ? "off" : state
-}
-function enable_temperature(state: number) {
-    listenning_to.temperature = state === 1;
-    return state === 1 ? "ready" : state === 0 ? "off" : state
-}
-input.onLogoEvent(TouchButtonEvent.Touched, function () {
-    if (listenning_to.logo) {
-        serial.writeString("" + commands.logo + "::1\n")
-    }
-})
-input.onLogoEvent(TouchButtonEvent.Released, function () {
-    if (listenning_to.logo) {
-        serial.writeString("" + commands.logo + "::0\n")
-    }
-})
 input.onButtonPressed(Button.B, function () {
     if (listenning_to.button_ab) {
         serial.writeString("" + commands.button_ab + "::b1\n")
@@ -129,19 +138,14 @@ input.onGesture(Gesture.LogoDown, function () {
         serial.writeString("" + commands.gesture + "::LogoDown\n")
     }
 })
+input.onLogoEvent(TouchButtonEvent.Touched, function () {
+    if (listenning_to.logo) {
+        serial.writeString("" + commands.logo + "::1\n")
+    }
+})
 input.onGesture(Gesture.ThreeG, function () {
     if (listenning_to.gesture) {
         serial.writeString("" + commands.gesture + "::ThreeG\n")
-    }
-})
-input.onGesture(Gesture.ScreenUp, function () {
-    if (listenning_to.gesture) {
-        serial.writeString("" + commands.gesture + "::ScreenUp\n")
-    }
-})
-input.onGesture(Gesture.ScreenDown, function () {
-    if (listenning_to.gesture) {
-        serial.writeString("" + commands.gesture + "::ScreenDown\n")
     }
 })
 serial.onDataReceived(serial.delimiters(Delimiters.NewLine), function () {
@@ -212,6 +216,11 @@ function play_sound (sound_id: number) {
     music.play(music.builtinPlayableSoundEffect(soundExpressionsMap[sound_id]), music.PlaybackMode.InBackground)
     return 1
 }
+input.onLogoEvent(TouchButtonEvent.Released, function () {
+    if (listenning_to.logo) {
+        serial.writeString("" + commands.logo + "::0\n")
+    }
+})
 function write_led_matrix () {
 	
 }
@@ -244,17 +253,17 @@ let listenning_to = {
     logo: false,
     button_ab: false,
     gesture: false,
-    accelerometer: false,
-    compass: false,
-    temperature: false,
+    // accelerometer: false,
+    // compass: false,
+    // temperature: false,
 }
 let commands = {
     logo: "m0",
     button_ab: "m1",
     gesture: "m2",
-    accelerometer: "m3",
-    compass: "m4",
-    temperature: "m5",
+    // accelerometer: "m3",
+    // compass: "m4",
+    // temperature: "m5",
 }
 serial.setTxBufferSize(32)
 serial.setRxBufferSize(96)
@@ -296,9 +305,9 @@ const functions: { [key: string]: Function } = {
     'm0': enable_logo,
     'm1': enable_button_ab,
     'm2': enable_gesture,
-    'm3': enable_accelerometer,
-    'm4': enable_compass,
-    'm5': enable_temperature,
+    'm3': read_accelerometer,
+    'm4': read_compass,
+    'm5': read_temperature,
 
     'v': write_led_matrix,
 }
@@ -329,15 +338,20 @@ serial.setBaudRate(BaudRate.BaudRate115200)
 OLED.init(128, 64)
 OLED.clear()
 readyForNextCommand = true
-basic.forever(function () {
-    if (listenning_to.accelerometer) {
-        serial.writeString("" + commands.accelerometer + "::" + input.acceleration(Dimension.X) + "," + input.acceleration(Dimension.Y) + "," + input.acceleration(Dimension.Z) + "\n")
-    }
-    if (listenning_to.compass) {
-        serial.writeString("" + commands.compass + "::" + input.compassHeading() + "\n")
-    }
-    if (listenning_to.temperature) {
-        serial.writeString("" + commands.temperature + "::" + input.temperature() + "\n")
-    }
-    basic.pause(200)
-})
+// let loop_feedback = "";
+// basic.forever(function () {
+//     loop_feedback = "";
+//     if (listenning_to.accelerometer) {
+//         loop_feedback += "" + commands.accelerometer + "::" + input.acceleration(Dimension.X) + "," + input.acceleration(Dimension.Y) + "," + input.acceleration(Dimension.Z) + "\n";
+//     }
+//     if (listenning_to.compass) {
+//         loop_feedback += "" + commands.compass + "::" + input.compassHeading() + "\n";
+//     }
+//     if (listenning_to.temperature) {
+//         loop_feedback += "" + commands.temperature + "::" + input.temperature() + "\n";
+//     }
+//     if (loop_feedback !== "") {
+//         serial.writeString(loop_feedback);
+//     }
+//     basic.pause(1000)
+// })
