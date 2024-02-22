@@ -15,10 +15,16 @@ function read_analog (pin: number) {
 }
 function write_analog (pin: number, value: number) {
     pins.analogWritePin(pin, value)
-    return 1
+return 1
+}
+function read_temperature () {
+    return input.temperature()
 }
 function read_light_intensity (light_intensity_pin: number) {
     return Environment.ReadLightIntensity(light_intensity_pin)
+}
+function read_accelerometer () {
+    return "" + input.acceleration(Dimension.X) + "," + input.acceleration(Dimension.Y) + "," + input.acceleration(Dimension.Z)
 }
 input.onButtonPressed(Button.A, function () {
     if (listenning_to.button_ab) {
@@ -81,20 +87,11 @@ function read_noise (noise_pin: number) {
 }
 function enable_logo (state: number) {
     listenning_to.logo = state === 1;
-    return state === 1 ? "ready" : state === 0 ? "off" : state
+return state === 1 ? "ready" : state === 0 ? "off" : state
 }
-// function enable_accelerometer (state: number) {
-//     listenning_to.accelerometer = state === 1;
-//     return state === 1 ? "ready" : state === 0 ? "off" : state
-// }
-// function enable_temperature(state: number) {
-//     listenning_to.temperature = state === 1;
-//     return state === 1 ? "ready" : state === 0 ? "off" : state
-// }
-// function enable_compass (state: number) {
-//     listenning_to.compass = state === 1;
-//     return state === 1 ? "ready" : state === 0 ? "off" : state
-// }
+function read_compass () {
+    return input.compassHeading()
+}
 function read_dust (v_led: number, vo: number) {
     return Environment.ReadDust(v_led, vo)
 }
@@ -105,18 +102,9 @@ function read_pir (pin: number) {
         return 0
     }
 }
-function read_accelerometer() {
-    return input.acceleration(Dimension.X) + "," + input.acceleration(Dimension.Y) + "," + input.acceleration(Dimension.Z);
-}
-function read_compass() {
-    return input.compassHeading();
-}
-function read_temperature() {
-    return input.temperature();
-}
 function enable_button_ab (state: number) {
     listenning_to.button_ab = state === 1;
-    return state === 1 ? "ready" : state === 0 ? "off" : state
+return state === 1 ? "ready" : state === 0 ? "off" : state
 }
 input.onButtonPressed(Button.B, function () {
     if (listenning_to.button_ab) {
@@ -221,8 +209,45 @@ input.onLogoEvent(TouchButtonEvent.Released, function () {
         serial.writeString("" + commands.logo + "::0\n")
     }
 })
-function write_led_matrix () {
-	
+function write_led_matrix(pattern: string) {
+    // basic.showLeds(`
+    //     # . . . .
+    //     . . . . .
+    //     . . . # .
+    //     . . . . .
+    //     . # # # #
+    //     `)
+    led.plot(2, 3);
+    led.plot(3, 2);
+    // if (led.point(2, 3)) {
+    //     return 5
+    // } else {
+    //     return 7
+    // }
+    // Ensure the pattern has exactly 25 characters
+    if (pattern.length !== 25) {
+        return 'patternError'
+    }
+
+    // Convert the pattern to a 5x5 matrix
+    const matrix = [];
+    for (let i = 0; i < 5; i++) {
+        matrix.push(pattern.slice(i * 5, (i + 1) * 5).split(''));
+    }
+
+    // Display the pattern on the LED matrix
+    // let feedback = ''
+    for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 5; col++) {
+            if (matrix[row][col] === '#') {
+                led.plot(row, col);
+                // feedback += `(row, ${row}, col, ${col})`
+            } else {
+                led.unplot(row, col);
+            }
+        }
+    }
+    return 1
 }
 function write_digital (pin: number, value: number) {
     pins.digitalWritePin(pin, value)
@@ -253,17 +278,11 @@ let listenning_to = {
     logo: false,
     button_ab: false,
     gesture: false,
-    // accelerometer: false,
-    // compass: false,
-    // temperature: false,
 }
 let commands = {
     logo: "m0",
     button_ab: "m1",
     gesture: "m2",
-    // accelerometer: "m3",
-    // compass: "m4",
-    // temperature: "m5",
 }
 serial.setTxBufferSize(32)
 serial.setRxBufferSize(96)
@@ -302,14 +321,16 @@ const functions: { [key: string]: Function } = {
     'r': play_sound,
     's': play_music,
 
-    'm0': enable_logo,
-    'm1': enable_button_ab,
-    'm2': enable_gesture,
-    'm3': read_accelerometer,
-    'm4': read_compass,
-    'm5': read_temperature,
+    'i0': enable_logo,
+    'i1': enable_button_ab,
+    'i2': enable_gesture,
+    'i3': read_accelerometer,
+    'i4': read_compass,
+    'i5': read_temperature,
 
-    'v': write_led_matrix,
+    'o0': play_sound,
+    'o1': play_music,
+    'o2': write_led_matrix,
 }
 const pins_map: { [key: string]: number} = {
     'p0': 100,
@@ -338,20 +359,3 @@ serial.setBaudRate(BaudRate.BaudRate115200)
 OLED.init(128, 64)
 OLED.clear()
 readyForNextCommand = true
-// let loop_feedback = "";
-// basic.forever(function () {
-//     loop_feedback = "";
-//     if (listenning_to.accelerometer) {
-//         loop_feedback += "" + commands.accelerometer + "::" + input.acceleration(Dimension.X) + "," + input.acceleration(Dimension.Y) + "," + input.acceleration(Dimension.Z) + "\n";
-//     }
-//     if (listenning_to.compass) {
-//         loop_feedback += "" + commands.compass + "::" + input.compassHeading() + "\n";
-//     }
-//     if (listenning_to.temperature) {
-//         loop_feedback += "" + commands.temperature + "::" + input.temperature() + "\n";
-//     }
-//     if (loop_feedback !== "") {
-//         serial.writeString(loop_feedback);
-//     }
-//     basic.pause(1000)
-// })
