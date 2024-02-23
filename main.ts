@@ -209,41 +209,39 @@ input.onLogoEvent(TouchButtonEvent.Released, function () {
         serial.writeString("" + commands.logo + "::0\n")
     }
 })
-function write_led_matrix(pattern: string) {
+// Convert the pattern to a 5x5 matrix
+function write_led_matrix (pattern: string) {
+    let matrix: string[][] = []
     // basic.showLeds(`
-    //     # . . . .
-    //     . . . . .
-    //     . . . # .
-    //     . . . . .
-    //     . # # # #
-    //     `)
-    led.plot(2, 3);
-    led.plot(3, 2);
+    // # . . . .
+    // . . . . .
+    // . . . # .
+    // . . . . .
+    // . # # # #
+    // `)
+    led.plot(2, 3)
+    led.plot(3, 2)
     // if (led.point(2, 3)) {
-    //     return 5
+    // return 5
     // } else {
-    //     return 7
+    // return 7
     // }
     // Ensure the pattern has exactly 25 characters
-    if (pattern.length !== 25) {
-        return 'patternError'
+    if (pattern.length != 25) {
+        return "patternError"
     }
-
-    // Convert the pattern to a 5x5 matrix
-    const matrix = [];
-    for (let i = 0; i < 5; i++) {
-        matrix.push(pattern.slice(i * 5, (i + 1) * 5).split(''));
+    for (let i = 0; i <= 4; i++) {
+        matrix.push(pattern.slice(i * 5, (i + 1) * 5).split(""))
     }
-
     // Display the pattern on the LED matrix
     // let feedback = ''
-    for (let row = 0; row < 5; row++) {
-        for (let col = 0; col < 5; col++) {
-            if (matrix[row][col] === '#') {
-                led.plot(row, col);
-                // feedback += `(row, ${row}, col, ${col})`
+    for (let row = 0; row <= 4; row++) {
+        for (let col = 0; col <= 4; col++) {
+            // feedback += `(row, ${row}, col, ${col})`
+            if (matrix[row][col] == "#") {
+                led.plot(row, col)
             } else {
-                led.unplot(row, col);
+                led.unplot(row, col)
             }
         }
     }
@@ -273,6 +271,13 @@ let response4 = ""
 let function_id = ""
 let function_name = ""
 let message = ""
+// basic.showLeds(`
+// # # # . .
+// # . # . .
+// # # # . #
+// . . # # .
+// . . # . #
+// `)
 let readyForNextCommand = false
 let listenning_to = {
     logo: false,
@@ -280,9 +285,9 @@ let listenning_to = {
     gesture: false,
 }
 let commands = {
-    logo: "m0",
-    button_ab: "m1",
-    gesture: "m2",
+    logo: "i0",
+    button_ab: "i1",
+    gesture: "i2",
 }
 serial.setTxBufferSize(32)
 serial.setRxBufferSize(96)
