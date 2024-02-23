@@ -2,11 +2,11 @@ function read_water_level (water_level_pin: number) {
     return Environment.ReadWaterLevel(water_level_pin)
 }
 function enable_gesture (state: number) {
-    listenning_to.gesture = state === 1;
+    enable.gesture = state === 1;
 return state === 1 ? "ready" : state === 0 ? "off" : state
 }
 input.onGesture(Gesture.EightG, function () {
-    if (listenning_to.gesture) {
+    if (enable.gesture) {
         serial.writeString("" + commands.gesture + "::EightG\n")
     }
 })
@@ -27,17 +27,17 @@ function read_accelerometer () {
     return "" + input.acceleration(Dimension.X) + "," + input.acceleration(Dimension.Y) + "," + input.acceleration(Dimension.Z)
 }
 input.onButtonPressed(Button.A, function () {
-    if (listenning_to.button_ab) {
+    if (enable.button_ab) {
         serial.writeString("" + commands.button_ab + "::a1\n")
     }
 })
 input.onGesture(Gesture.FreeFall, function () {
-    if (listenning_to.gesture) {
+    if (enable.gesture) {
         serial.writeString("" + commands.gesture + "::FreeFall\n")
     }
 })
 input.onGesture(Gesture.LogoUp, function () {
-    if (listenning_to.gesture) {
+    if (enable.gesture) {
         serial.writeString("" + commands.gesture + "::LogoUp\n")
     }
 })
@@ -46,7 +46,7 @@ function move_servo (pin: number, angle: number) {
 return 1
 }
 input.onGesture(Gesture.TiltLeft, function () {
-    if (listenning_to.gesture) {
+    if (enable.gesture) {
         serial.writeString("" + commands.gesture + "::TiltLeft\n")
     }
 })
@@ -54,7 +54,7 @@ function read_digital (pin: number) {
     return pins.digitalReadPin(pin)
 }
 input.onGesture(Gesture.SixG, function () {
-    if (listenning_to.gesture) {
+    if (enable.gesture) {
         serial.writeString("" + commands.gesture + "::SixG\n")
     }
 })
@@ -70,7 +70,7 @@ function play_music (music_id: number) {
     return 1
 }
 input.onGesture(Gesture.ScreenUp, function () {
-    if (listenning_to.gesture) {
+    if (enable.gesture) {
         serial.writeString("" + commands.gesture + "::ScreenUp\n")
     }
 })
@@ -78,7 +78,7 @@ function read_soil_humidity (soil_moisture_pin: number) {
     return Environment.ReadSoilHumidity(soil_moisture_pin)
 }
 input.onGesture(Gesture.ScreenDown, function () {
-    if (listenning_to.gesture) {
+    if (enable.gesture) {
         serial.writeString("" + commands.gesture + "::ScreenDown\n")
     }
 })
@@ -86,7 +86,7 @@ function read_noise (noise_pin: number) {
     return Environment.ReadNoise(noise_pin)
 }
 function enable_logo (state: number) {
-    listenning_to.logo = state === 1;
+    enable.logo = state === 1;
 return state === 1 ? "ready" : state === 0 ? "off" : state
 }
 function read_compass () {
@@ -94,6 +94,10 @@ function read_compass () {
 }
 function read_dust (v_led: number, vo: number) {
     return Environment.ReadDust(v_led, vo)
+}
+function enable_led_matrix (state: number) {
+    led.enable(state === 1)
+    return state === 1 ? "ready" : state === 0 ? "off" : state
 }
 function read_pir (pin: number) {
     if (Environment.PIR(pin)) {
@@ -103,36 +107,36 @@ function read_pir (pin: number) {
     }
 }
 function enable_button_ab (state: number) {
-    listenning_to.button_ab = state === 1;
+    enable.button_ab = state === 1;
 return state === 1 ? "ready" : state === 0 ? "off" : state
 }
 input.onButtonPressed(Button.B, function () {
-    if (listenning_to.button_ab) {
+    if (enable.button_ab) {
         serial.writeString("" + commands.button_ab + "::b1\n")
     }
 })
 input.onGesture(Gesture.Shake, function () {
-    if (listenning_to.gesture) {
+    if (enable.gesture) {
         serial.writeString("" + commands.gesture + "::Shake\n")
     }
 })
 input.onGesture(Gesture.TiltRight, function () {
-    if (listenning_to.gesture) {
+    if (enable.gesture) {
         serial.writeString("" + commands.gesture + "::TiltRight\n")
     }
 })
 input.onGesture(Gesture.LogoDown, function () {
-    if (listenning_to.gesture) {
+    if (enable.gesture) {
         serial.writeString("" + commands.gesture + "::LogoDown\n")
     }
 })
 input.onLogoEvent(TouchButtonEvent.Touched, function () {
-    if (listenning_to.logo) {
+    if (enable.logo) {
         serial.writeString("" + commands.logo + "::1\n")
     }
 })
 input.onGesture(Gesture.ThreeG, function () {
-    if (listenning_to.gesture) {
+    if (enable.gesture) {
         serial.writeString("" + commands.gesture + "::ThreeG\n")
     }
 })
@@ -205,27 +209,13 @@ function play_sound (sound_id: number) {
     return 1
 }
 input.onLogoEvent(TouchButtonEvent.Released, function () {
-    if (listenning_to.logo) {
+    if (enable.logo) {
         serial.writeString("" + commands.logo + "::0\n")
     }
 })
 // Convert the pattern to a 5x5 matrix
 function write_led_matrix (pattern: string) {
     let matrix: string[][] = []
-    // basic.showLeds(`
-    // # . . . .
-    // . . . . .
-    // . . . # .
-    // . . . . .
-    // . # # # #
-    // `)
-    led.plot(2, 3)
-    led.plot(3, 2)
-    // if (led.point(2, 3)) {
-    // return 5
-    // } else {
-    // return 7
-    // }
     // Ensure the pattern has exactly 25 characters
     if (pattern.length != 25) {
         return "patternError"
@@ -233,12 +223,9 @@ function write_led_matrix (pattern: string) {
     for (let i = 0; i <= 4; i++) {
         matrix.push(pattern.slice(i * 5, (i + 1) * 5).split(""))
     }
-    // Display the pattern on the LED matrix
-    // let feedback = ''
     for (let row = 0; row <= 4; row++) {
         for (let col = 0; col <= 4; col++) {
-            // feedback += `(row, ${row}, col, ${col})`
-            if (matrix[row][col] == "#") {
+            if (matrix[col][row] == "#") {
                 led.plot(row, col)
             } else {
                 led.unplot(row, col)
@@ -266,11 +253,6 @@ function read_BME280 (state: number) {
     }
     return 0
 }
-let response23 = ""
-let response4 = ""
-let function_id = ""
-let function_name = ""
-let message = ""
 // basic.showLeds(`
 // # # # . .
 // # . # . .
@@ -279,7 +261,12 @@ let message = ""
 // . . # . #
 // `)
 let readyForNextCommand = false
-let listenning_to = {
+let message = ""
+let function_name = ""
+let function_id = ""
+let response4 = ""
+let response23 = ""
+let enable = {
     logo: false,
     button_ab: false,
     gesture: false,
@@ -336,6 +323,7 @@ const functions: { [key: string]: Function } = {
     'o0': play_sound,
     'o1': play_music,
     'o2': write_led_matrix,
+    'o2a': enable_led_matrix,
 }
 const pins_map: { [key: string]: number} = {
     'p0': 100,
