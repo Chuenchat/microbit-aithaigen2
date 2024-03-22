@@ -280,7 +280,10 @@ serial.setTxBufferSize(32)
 serial.setRxBufferSize(96)
 function add_text (text: string | number) {
     OLED.clear()
-    OLED.writeStringNewLine(convertToText(text))
+    const lines = convertToText(text).split("*NL*");
+    for (let i = 0; i < lines.length; i++) {
+        OLED.writeStringNewLine(lines[i]);
+    }
     return 1
 }
 const soundExpressionsMap: { [key: number]: SoundExpression } = {
